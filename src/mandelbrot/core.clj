@@ -2,30 +2,24 @@
   (:import (java.awt.image BufferedImage)
            (javax.imageio ImageIO)
            (java.io File)
-           (java.awt Color)))
-
-(defn complex-mult [re im]
-  [(+' (*' re re) (-' (*' im im)))
-   (*' 2 (*' re im))])
+           (java.awt Color))
+  (:require [mandelbrot.maths :as maths]))
 
 (defn mandelbrot-iter [z c]
-  (apply vector (map +' (complex-mult (first z) (second z)) c)))
+  (apply vector (map +' (maths/complex-square (first z) (second z)) c)))
 
-(defn abs [n] (max n (-' n)))
-
-(defn greater-than [f z] (> (abs (f z)) 500))
-
-(defn mandel-iters [zinit cinit]
-  (loop [z zinit c (map float cinit) iters 0]
-    (if (>= iters (- (* 256 1) 1))
-      (- (* 256 1) 1)
-      (if (or (greater-than first z) (greater-than second z))
-        iters
-        (recur (mandelbrot-iter z c) c (+ iters 1))))))
+(defn mandel-iters [z_init c_init max_iters]
+  (let [end_cond (- max_iters 1)]
+    (loop [z z_init c (map float c_init) iters 0]
+      (if (>= iters end_cond)
+        end_cond
+        (if (not (nil? (some identity (map #(> (maths/abs (get z %)) 500) '(0 1)))))
+          iters
+          (recur (mandelbrot-iter z c) c (+ iters 1)))))))
 
 (defn gen-mandels [x_min x_max y_min y_max step]
   (for [x (range x_min (+ x_max step) step) y (range y_min (+ y_max step) step)]
-    [x y (mandel-iters [0 0] [x y])]))
+    [x y (mandel-iters [0 0] [x y] 256)]))
 
 (defn adjust [i limit step block_size] (* (/ 1 step) (- i limit) block_size))
 
