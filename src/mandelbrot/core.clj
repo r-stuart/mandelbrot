@@ -7,7 +7,7 @@
 
 (defn mandel-iters [z_init c_init max_iters escape]
   (let [end_cond (- max_iters 1)
-        escaped? (fn [z] (not (nil? (some identity (map #(> (maths/abs (get z %)) escape) [0 1])))))
+        escaped? (fn [z] (some? (some identity (map #(> (maths/abs (get z %)) escape) [0 1]))))
         mandel-step (fn [z c] (apply vector (map +' (maths/complex-square (first z) (second z)) c)))]
     (loop [z z_init c (map float c_init) iters 0]
       (if (>= iters end_cond)
