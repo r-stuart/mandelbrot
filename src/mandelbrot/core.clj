@@ -30,37 +30,35 @@
     (/ (- (apply max index_points) (apply min index_points)) (- (count index_points) 1))))
 
 (defn plot-mandels [g points block_size]
-  (let [x-range (extract-range points 0)]
-    (let [y-range (extract-range points 1)]
-      (let [step (extract-step points)]
-        (defn adjust [i limit step block_size] (* (/ 1 step) (- i limit) block_size))
-        (doseq [[x y block] points]
-          (.setColor g (Color. (* 16 (quot block 16)) (* 16 (mod block 16)) 0))
-          (.fillRect g
-                     (adjust x (first x-range) step block_size)
-                     (adjust y (first y-range) step block_size)
-                     block_size
-                     block_size)))
-      )))
+  (let [x-range (extract-range points 0)
+        y-range (extract-range points 1)
+        step (extract-step points)]
+    (defn adjust [i limit step block_size] (* (/ 1 step) (- i limit) block_size))
+    (doseq [[x y block] points]
+      (.setColor g (Color. (* 16 (quot block 16)) (* 16 (mod block 16)) 0))
+      (.fillRect g
+                 (adjust x (first x-range) step block_size)
+                 (adjust y (first y-range) step block_size)
+                 block_size
+                 block_size))
+    ))
 
 (defn draw-mandels [filename points block_size]
-  (let [step (extract-step points)]
-    (let [x_range (extract-range points 0)]
-      (let [y_range (extract-range points 1)]
-        (defn image-size [c_min c_max step block_size] (* (/ (- c_max c_min) step) block_size))
-        (def bi (BufferedImage.
-                  (image-size (first x_range) (second x_range) step block_size)
-                  (image-size (first y_range) (second y_range) step block_size)
-                  BufferedImage/TYPE_INT_ARGB))
-        (def gfx (.createGraphics bi))
-        (plot-mandels gfx points block_size)
-        (ImageIO/write bi "png" (File. (str filename ".png")))
-        )
-      )
+  (let [step (extract-step points)
+        x_range (extract-range points 0)
+        y_range (extract-range points 1)]
+    (defn image-size [c_min c_max step block_size] (* (/ (- c_max c_min) step) block_size))
+    (def bi (BufferedImage.
+              (image-size (first x_range) (second x_range) step block_size)
+              (image-size (first y_range) (second y_range) step block_size)
+              BufferedImage/TYPE_INT_ARGB))
+    (def gfx (.createGraphics bi))
+    (plot-mandels gfx points block_size)
+    (ImageIO/write bi "png" (File. (str filename ".png")))
     )
   )
 
-(comment (draw-mandels "test" (gen-mandels -2 2 -2 2 1/32)  1))
+(comment (draw-mandels "test" (gen-mandels -2 2 -2 2 1/32) 1))
 
 (comment (draw-mandels "test2" (gen-mandels -2 2 -9/8 9/8 1/480) 1))
 (comment (draw-mandels "test3" (gen-mandels -4 4 -9/4 9/4 1/240) 1))
