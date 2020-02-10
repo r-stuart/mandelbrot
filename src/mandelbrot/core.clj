@@ -24,13 +24,15 @@
                       y (second xy)]
                   [x y (mandel-iters [0 0] [x y] max_iters escape)])) xys))
 
+(defn parallel-buckets [f x coll]
+  (let [split-coll (partition-all x coll)]
+    (apply concat (pmap #(doall (map f %)) split-coll))))
+
 (defn gen-mandels-par [xys max_iters escape buckets]
-  (let [split-xys (partition-all buckets xys)]
-    (apply concat (pmap #(map (fn [xy] (let [x (first xy)
-                                             y (second xy)]
-                                         [x y (mandel-iters [0 0] [x y] max_iters escape)])) %) split-xys))
-    )
-  )
+  (let [iter-function (fn [xy] (let [x (first xy)
+                                     y (second xy)]
+                                 [x y (mandel-iters [0 0] [x y] max_iters escape)]))]
+    (parallel-buckets iter-function buckets xys)))
 
 (defn plot-mandels [points block_size]
   (let [extract-range (fn [ps index] (let [index_points (map #(get % index) ps)]
@@ -60,8 +62,6 @@
 (defn draw-mandels [filename points block_size]
   (ImageIO/write (plot-mandels points block_size) "png" (File. (str filename ".png"))))
 
-(comment (draw-mandels "test" (gen-mandels (gen-coords -2 2 -2 2 1/32) 256 500) 1))
-
-(comment (count (gen-mandels-par (gen-coords -2 2 -9/8 9/8 1/480) 256 500 16)))
-(comment (draw-mandels "test2" (gen-mandels (gen-coords -2 2 -9/8 9/8 1/480) 256 500) 1))
-(comment (draw-mandels "test3" (gen-mandels (gen-coords -4 4 -9/4 9/4 1/240) 256 500) 1))
+(comment (draw-mandels "test" (gen-mandels-par (gen-coords -2 2 -2 2 1/32) 256 500 8) 1))
+(comment (draw-mandels "test2" (gen-mandels-par (gen-coords -2 2 -9/8 9/8 1/480) 256 500 8) 1))
+(comment (draw-mandels "test3" (gen-mandels-par (gen-coords -4 4 -9/4 9/4 1/240) 256 500 8) 1))
