@@ -16,15 +16,27 @@
           iters
           (recur (mandel-step z c) c (+ iters 1)))))))
 
-(defn gen-mandels [x_min x_max y_min y_max step max_iters escape]
-  (for [x (range x_min (+ x_max step) step) y (range y_min (+ y_max step) step)]
-    [x y (mandel-iters [0 0] [x y] max_iters escape)]))
+(defn gen-coords [x_min x_max y_min y_max step]
+  (for [x (range x_min (+ x_max step) step) y (range y_min (+ y_max step) step)] [x y]))
+
+(defn gen-mandels [xys max_iters escape]
+  (map (fn [xy] (let [x (first xy)
+                      y (second xy)]
+                  [x y (mandel-iters [0 0] [x y] max_iters escape)])) xys))
+
+(defn gen-mandels-par [xys max_iters escape buckets]
+  (let [split-xys (partition-all buckets xys)]
+    (apply concat (pmap #(map (fn [xy] (let [x (first xy)
+                                             y (second xy)]
+                                         [x y (mandel-iters [0 0] [x y] max_iters escape)])) %) split-xys))
+    )
+  )
 
 (defn plot-mandels [points block_size]
   (let [extract-range (fn [ps index] (let [index_points (map #(get % index) ps)]
                                        [(apply min index_points) (apply max index_points)]))
-        extract-step (fn [ps]   (let [index_points (set (map #(get % 0) ps))]
-                                  (/ (- (apply max index_points) (apply min index_points)) (- (count index_points) 1))))
+        extract-step (fn [ps] (let [index_points (set (map #(get % 0) ps))]
+                                (/ (- (apply max index_points) (apply min index_points)) (- (count index_points) 1))))
         x_range (extract-range points 0)
         y_range (extract-range points 1)
         adjust (fn [i limit step block_size] (* (/ 1 step) (- i limit) block_size))
@@ -48,7 +60,8 @@
 (defn draw-mandels [filename points block_size]
   (ImageIO/write (plot-mandels points block_size) "png" (File. (str filename ".png"))))
 
-(comment (draw-mandels "test" (gen-mandels -2 2 -2 2 1/32 256 500) 1))
+(comment (draw-mandels "test" (gen-mandels (gen-coords -2 2 -2 2 1/32) 256 500) 1))
 
-(comment (draw-mandels "test2" (gen-mandels -2 2 -9/8 9/8 1/480 256 500) 1))
-(comment (draw-mandels "test3" (gen-mandels -4 4 -9/4 9/4 1/240 256 500) 1))
+(comment (count (gen-mandels-par (gen-coords -2 2 -9/8 9/8 1/480) 256 500 16)))
+(comment (draw-mandels "test2" (gen-mandels (gen-coords -2 2 -9/8 9/8 1/480) 256 500) 1))
+(comment (draw-mandels "test3" (gen-mandels (gen-coords -4 4 -9/4 9/4 1/240) 256 500) 1))
