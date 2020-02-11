@@ -19,16 +19,11 @@
 (defn gen-coords [x_min x_max y_min y_max step]
   (for [x (range x_min (+ x_max step) step) y (range y_min (+ y_max step) step)] [x y]))
 
-(defn gen-mandels [xys max_iters escape]
-  (map (fn [xy] (let [x (first xy)
-                      y (second xy)]
-                  [x y (mandel-iters [0 0] [x y] max_iters escape)])) xys))
-
-(defn parallel-buckets [f x coll]
-  (let [split-coll (partition-all x coll)]
+(defn parallel-buckets [f n coll]
+  (let [split-coll (partition-all n coll)]
     (apply concat (pmap #(doall (map f %)) split-coll))))
 
-(defn gen-mandels-par [xys max_iters escape buckets]
+(defn gen-mandels [xys max_iters escape buckets]
   (let [iter-function (fn [xy] (let [x (first xy)
                                      y (second xy)]
                                  [x y (mandel-iters [0 0] [x y] max_iters escape)]))]
@@ -59,9 +54,11 @@
     bi
     ))
 
-(defn draw-mandels [filename points block_size]
-  (ImageIO/write (plot-mandels points block_size) "png" (File. (str filename ".png"))))
+(defn write-to-file [plot filename]
+  (ImageIO/write plot "png" (File. (str filename ".png"))))
 
-(comment (draw-mandels "test" (gen-mandels-par (gen-coords -2 2 -2 2 1/32) 256 500 8) 1))
-(comment (draw-mandels "test2" (gen-mandels-par (gen-coords -2 2 -9/8 9/8 1/480) 256 500 8) 1))
-(comment (draw-mandels "test3" (gen-mandels-par (gen-coords -4 4 -9/4 9/4 1/240) 256 500 8) 1))
+(comment
+  (-> (gen-coords -2 2 -9/8 9/8 1/480)
+      (gen-mandels 256 500 8)
+      (plot-mandels 1)
+      (write-to-file "example")))
