@@ -4,7 +4,7 @@ A playaround in Clojure to generate mandelbrot sets.
 
 ## Usage
 
-Run in the REPL the examples at the bottom of `core.clj`.
+Run in the REPL the example at the bottom of `core.clj`.
 
 ## License
 
