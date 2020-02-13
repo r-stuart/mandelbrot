@@ -23,17 +23,13 @@
   (let [split-coll (partition-all n coll)]
     (apply concat (pmap #(doall (map f %)) split-coll))))
 
+(defn iter-function  [xy max_iters escape] (let [x (first xy)
+                                                 y (second xy)]
+                                             [x y (mandel-iters [0 0] [x y] max_iters escape)]))
+
 (defn gen-mandels
-  ([xys max_iters escape]
-   (let [iter-function (fn [xy] (let [x (first xy)
-                                      y (second xy)]
-                                  [x y (mandel-iters [0 0] [x y] max_iters escape)]))]
-     (map iter-function xys)))
-  ([xys max_iters escape buckets]
-  (let [iter-function (fn [xy] (let [x (first xy)
-                                     y (second xy)]
-                                 [x y (mandel-iters [0 0] [x y] max_iters escape)]))]
-    (parallel-buckets iter-function buckets xys))))
+  ([xys max_iters escape] (map iter-function xys max_iters escape))
+  ([xys max_iters escape buckets] (parallel-buckets #(iter-function % max_iters escape) buckets xys)))
 
 (defn plot-mandels [points block_size r_func g_func b_func]
   (let [extract-range (fn [ps index] (let [index_points (map #(get % index) ps)]
@@ -64,7 +60,7 @@
   (ImageIO/write plot "png" (File. (str filename ".png"))))
 
 (comment
-  (-> (gen-coords -2 2 -9/8 9/8 1/120)
+  (-> (gen-coords -2 2 -9/8 9/8 1/480)
       (gen-mandels 256 500 8)
       (plot-mandels 1 #(- 255 (* 16 (quot % 16))) #(- 255 (* 16 (mod % 16))) (constantly 0))
-      (write-to-file "example2")))
+      (write-to-file "example")))
