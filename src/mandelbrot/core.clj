@@ -23,9 +23,9 @@
   (let [split-coll (partition-all n coll)]
     (apply concat (pmap #(doall (map f %)) split-coll))))
 
-(defn iter-function  [xy max_iters escape] (let [x (first xy)
-                                                 y (second xy)]
-                                             [x y (mandel-iters [0 0] [x y] max_iters escape)]))
+(defn iter-function [xy max_iters escape] (let [x (first xy)
+                                                y (second xy)]
+                                            [x y (mandel-iters [0 0] [x y] max_iters escape)]))
 
 (defn gen-mandels
   ([xys max_iters escape] (map iter-function xys max_iters escape))
@@ -58,9 +58,3 @@
 
 (defn write-to-file [plot filename]
   (ImageIO/write plot "png" (File. (str filename ".png"))))
-
-(comment
-  (-> (gen-coords -2 2 -9/8 9/8 1/480)
-      (gen-mandels 256 500 8)
-      (plot-mandels 1 #(- 255 (* 16 (quot % 16))) #(- 255 (* 16 (mod % 16))) (constantly 0))
-      (write-to-file "example")))
