@@ -2,7 +2,7 @@
   (:import (java.awt.image BufferedImage)
            (javax.imageio ImageIO)
            (java.io File)
-           (java.awt Color))
+           (java.awt Color Frame Dimension))
   (:require [mandelbrot.maths :as maths]))
 
 (defn mandel-iters [z_init c_init max_iters escape]
@@ -58,3 +58,9 @@
 
 (defn write-to-file [plot filename]
   (ImageIO/write plot "png" (File. (str filename ".png"))))
+
+(defn draw-to-screen [plot frame]
+  (.setVisible frame true)
+  (comment (.setSize frame (Dimension. 512 512)))
+  (let [gfx (.getGraphics frame)]
+    (.drawImage gfx plot 0 0 nil)))
