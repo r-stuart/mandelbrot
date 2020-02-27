@@ -9,11 +9,11 @@ Chain together the commands `gen-coords`, `gen-mandels`, `plot-mandels` and `wri
 ```
 (-> (gen-coords -2 2 -9/8 9/8 1/480)
     (gen-mandels 256 500 8)
-    (plot-mandels 1 #(- 255 (* 8 (quot % 16))) #(- 255 (* 16 (mod % 16))) #(- 127 (* 8 (quot % 16))))
-    (write-to-file "summer-mandelbrot"))
+    (plot-mandels 1 colours/summer)
+    (write-to-file "docs/example"))
 ```
 
-This example will produce an image titled "summer-mandelbrot.png".
+This example will produce the image `docs/example.png`.
 
 ![Example Mandelbrot](docs/example.png?raw=true)
 
@@ -28,7 +28,7 @@ To play around with different graphics in a live window:
 (def frame (Frame.))
 
 (-> plot
-    (plot-mandels 1 #(quot 256 (+ % 1)) #(quot 256 (+ % 1)) #(- 255 %))
+    (plot-mandels 1 colours/wiki)
     (draw-to-screen frame))
 ```
 

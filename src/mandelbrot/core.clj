@@ -3,7 +3,8 @@
            (javax.imageio ImageIO)
            (java.io File)
            (java.awt Color Frame Dimension))
-  (:require [mandelbrot.maths :as maths]))
+  (:require [mandelbrot.maths :as maths]
+            [mandelbrot.colours :as colours]))
 
 (defn mandel-iters [z_init c_init max_iters escape]
   (let [end_cond (- max_iters 1)
@@ -31,7 +32,7 @@
   ([xys max_iters escape] (map iter-function xys max_iters escape))
   ([xys max_iters escape buckets] (parallel-buckets #(iter-function % max_iters escape) buckets xys)))
 
-(defn plot-mandels [points block_size r_func g_func b_func]
+(defn plot-mandels [points block_size colour_func]
   (let [extract-range (fn [ps index] (let [index_points (map #(get % index) ps)]
                                        [(apply min index_points) (apply max index_points)]))
         extract-step (fn [ps] (let [index_points (set (map #(get % 0) ps))]
@@ -47,7 +48,8 @@
              BufferedImage/TYPE_INT_ARGB)
         gfx (.createGraphics bi)]
     (doseq [[x y block] points]
-      (.setColor gfx (Color. (r_func block) (g_func block) (b_func block)))
+      (let [[r g b] (colour_func block)]
+        (.setColor gfx (Color. r g b)))
       (.fillRect gfx
                  (adjust x (first x_range) block_size)
                  (adjust y (first y_range) block_size)
