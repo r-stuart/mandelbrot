@@ -20,14 +20,14 @@ This example will produce the image `docs/example.png`.
 To play around with different graphics in a live window:
 
 ```
-(def plot
+(def example-plot
   (doall
     (-> (gen-coords -2 2 -9/8 9/8 1/480)
         (gen-mandels 256 500 8))))
 
 (def frame (Frame.))
 
-(-> plot
+(-> example-plot
     (plot-mandels 1 colours/wiki)
     (draw-to-screen frame))
 ```
