@@ -22,5 +22,5 @@
                                   [153 87 0]
                                   [106 52 3]]
                          black [0 0 0]]
-                     (if (and (< iters 255) (> iters 0)) (presets (mod iters 16)) black)
+                     (if (< 0 iters 255) (presets (mod iters 16)) black)
                      ))

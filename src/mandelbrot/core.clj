@@ -6,63 +6,63 @@
   (:require [mandelbrot.maths :as maths]
             [mandelbrot.colours :as colours]))
 
-(defn mandel-iters [z_init c_init max_iters escape]
-  (let [end_cond (- max_iters 1)
+(defn- mandel-iters [z-init c-init max-iters escape]
+  (let [n (dec max-iters)
         escaped? (fn [z] (some? (some identity (map #(> (maths/abs (get z %)) escape) [0 1]))))
         mandel-step (fn [z c] (apply vector (map +' (maths/complex-square (first z) (second z)) c)))]
-    (loop [z z_init c (map float c_init) iters 0]
-      (if (>= iters end_cond)
-        end_cond
+    (loop [z z-init c (map float c-init) i 0]
+      (if (>= i n)
+        n
         (if (escaped? z)
-          iters
-          (recur (mandel-step z c) c (+ iters 1)))))))
+          i
+          (recur (mandel-step z c) c (inc i)))))))
 
-(defn gen-coords [x_min x_max y_min y_max step]
-  (for [x (range x_min (+ x_max step) step) y (range y_min (+ y_max step) step)] [x y]))
+(defn gen-coords [x-min x-max y-min y-max step]
+  (for [x (range x-min (+ x-max step) step) y (range y-min (+ y-max step) step)] [x y]))
 
-(defn parallel-buckets [f n coll]
+(defn- parallel-buckets [f n coll]
   (let [split-coll (partition-all n coll)]
     (apply concat (pmap #(doall (map f %)) split-coll))))
 
-(defn iter-function [xy max_iters escape] (let [x (first xy)
+(defn- iter-function [xy n escape] (let [x (first xy)
                                                 y (second xy)]
-                                            [x y (mandel-iters [0 0] [x y] max_iters escape)]))
+                                            [x y (mandel-iters [0 0] [x y] n escape)]))
 
 (defn gen-mandels
-  ([xys max_iters escape] (map iter-function xys max_iters escape))
-  ([xys max_iters escape buckets] (parallel-buckets #(iter-function % max_iters escape) buckets xys)))
+  ([xys n escape] (map iter-function xys n escape))
+  ([xys n escape buckets] (parallel-buckets #(iter-function % n escape) buckets xys)))
 
-(defn plot-mandels [points block_size colour_func]
-  (let [extract-range (fn [ps index] (let [index_points (map #(get % index) ps)]
-                                       [(apply min index_points) (apply max index_points)]))
-        extract-step (fn [ps] (let [index_points (set (map #(get % 0) ps))]
-                                (/ (- (apply max index_points) (apply min index_points)) (- (count index_points) 1))))
-        x_range (extract-range points 0)
-        y_range (extract-range points 1)
+(defn plot-mandels [points block-size colour-func]
+  (let [extract-range (fn [ps index] (let [index-points (map #(get % index) ps)]
+                                       [(apply min index-points) (apply max index-points)]))
+        extract-step (fn [ps] (let [index-points (set (map #(get % 0) ps))]
+                                (/ (- (apply max index-points) (apply min index-points)) (- (count index-points) 1))))
+        x-range (extract-range points 0)
+        y-range (extract-range points 1)
         step (extract-step points)
-        adjust (fn [i limit block_size] (* (/ 1 step) (- i limit) block_size))
-        image-size (fn [c_min c_max step block_size] (* (/ (- c_max c_min) step) block_size))
+        adjust (fn [i limit block-size] (* (/ 1 step) (- i limit) block-size))
+        image-size (fn [c-min c-max step block-size] (* (/ (- c-max c-min) step) block-size))
         bi (BufferedImage.
-             (image-size (first x_range) (second x_range) step block_size)
-             (image-size (first y_range) (second y_range) step block_size)
+             (image-size (first x-range) (second x-range) step block-size)
+             (image-size (first y-range) (second y-range) step block-size)
              BufferedImage/TYPE_INT_ARGB)
         gfx (.createGraphics bi)]
     (doseq [[x y block] points]
-      (let [[r g b] (colour_func block)]
+      (let [[r g b] (colour-func block)]
         (.setColor gfx (Color. r g b)))
       (.fillRect gfx
-                 (adjust x (first x_range) block_size)
-                 (adjust y (first y_range) block_size)
-                 block_size
-                 block_size))
+                 (adjust x (first x-range) block-size)
+                 (adjust y (first y-range) block-size)
+                 block-size
+                 block-size))
     bi
     ))
 
 (defn write-to-file [plot filename]
-  (ImageIO/write plot "png" (File. (str filename ".png"))))
+  (io! (ImageIO/write plot "png" (File. (str filename ".png")))))
 
 (defn draw-to-screen [plot frame]
   (.setVisible frame true)
   (comment (.setSize frame (Dimension. 512 512)))
   (let [gfx (.getGraphics frame)]
-    (.drawImage gfx plot 0 0 nil)))
+    (io! (.drawImage gfx plot 0 0 nil))))
