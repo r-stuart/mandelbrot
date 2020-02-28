@@ -3,7 +3,7 @@ jobs:
   build:
     working_directory: ~/mandelbrot
     docker:
-      - image: circleci/clojure:lein-2.9.1-browsers
+      - image: circleci/clojure:lein-2.9.1
     environment:
       LEIN_ROOT: "true"
       JVM_OPTS: -Xmx3200m
@@ -18,4 +18,5 @@ jobs:
           paths:
             - ~/.m2
           key: mandelbrot-{{ checksum "project.clj" }}
+      - run: chmod -R -rw docs/
       - run: lein test
