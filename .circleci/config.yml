@@ -18,6 +18,4 @@ jobs:
           paths:
             - ~/.m2
           key: mandelbrot-{{ checksum "project.clj" }}
-      - run: ls
-      - run: chmod -R -rw docs
       - run: lein test

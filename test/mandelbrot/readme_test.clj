@@ -8,7 +8,9 @@
 
 (deftest examples-run
   (testing "Readme examples successfully run"
-    (let [example-image "docs/example.png"]
+    (let [docs (io/file "docs")
+          example-image "docs/example.png"]
+      (if-not (.exists docs) (.mkdir docs))
       (if (.exists (io/file example-image)) (io/delete-file example-image))
       (require '[mandelbrot.core :refer :all])
       (require '[mandelbrot.colours :as colours])
