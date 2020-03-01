@@ -6,7 +6,7 @@
   (testing "Readme file is present"
     (is (.exists (io/file "README.md")))))
 
-(deftest examples-run
+(comment (deftest examples-run
   (testing "Readme examples successfully run"
     (let [docs (io/file "docs")
           example-image "docs/example.png"]
@@ -16,4 +16,4 @@
       (require '[mandelbrot.colours :as colours])
       (doall (map eval (map read-string (take-nth 2 (rest (clojure.string/split (slurp "README.md") #"```"))))))
       (is (.exists (io/file example-image))))
-    ))
+    )))
